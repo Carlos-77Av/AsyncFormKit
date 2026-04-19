@@ -10,7 +10,7 @@ import Observation
 
 @MainActor
 @Observable
-public final class FormNode: AnyFormNode, Hashable {
+public final class FormNode: AnyFormNode {
     public let id: String
     public let label: String
     public let profile: any InputProfile
@@ -74,6 +74,10 @@ public final class FormNode: AnyFormNode, Hashable {
 
     public func validate(trigger: ValidationTrigger) async {
         validationTask?.cancel()
+        await performValidation(trigger: trigger)
+    }
+
+    private func performValidation(trigger: ValidationTrigger) async {
         status = .validating
 
         let values = coordinator?.currentValues() ?? [id: textValue]
@@ -142,15 +146,7 @@ public final class FormNode: AnyFormNode, Hashable {
             }
 
             guard !Task.isCancelled else { return }
-            await self.validate(trigger: trigger)
+            await self.performValidation(trigger: trigger)
         }
-    }
-
-    nonisolated public static func == (lhs: FormNode, rhs: FormNode) -> Bool {
-        lhs.id == rhs.id
-    }
-
-    nonisolated public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
     }
 }

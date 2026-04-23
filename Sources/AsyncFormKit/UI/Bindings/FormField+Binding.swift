@@ -1,5 +1,5 @@
 //
-//  FormNode+Binding.swift
+//  FormField+Binding.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-public extension FormNode {
+public extension FormField {
     var binding: Binding<String> {
         Binding(
-            get: { self.textValue },
-            set: { self.updateText($0) }
+            get: { self.value },
+            set: { self.updateValue($0) }
         )
     }
 }

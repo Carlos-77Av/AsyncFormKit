@@ -1,5 +1,5 @@
 //
-//  PasswordInputProfile.swift
+//  PasswordFieldConfiguration.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -8,13 +8,13 @@
 import Foundation
 import UIKit
 
-public struct PasswordInputProfile: InputProfile {
+public struct PasswordFieldConfiguration: FieldConfiguration {
     public let id: String
     public let title: String
-    public let rules: [any InputRule]
+    public let rules: [any ValidationRule]
     public let keyboardType: UIKeyboardType
-    public let validationMode: ValidationMode
-    public let validationPolicy: FieldValidationPolicy
+    public let errorPresentationMode: ErrorPresentationMode
+    public let validationPolicy: ValidationPolicy
 
     public init(
         id: String = "password",
@@ -30,7 +30,7 @@ public struct PasswordInputProfile: InputProfile {
             )
         ]
         self.keyboardType = .default
-        self.validationMode = .highestPriority
+        self.errorPresentationMode = .highestPriority
         self.validationPolicy = .onChangeDebounced(300_000_000)
     }
 

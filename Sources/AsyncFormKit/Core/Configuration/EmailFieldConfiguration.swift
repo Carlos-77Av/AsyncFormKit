@@ -1,5 +1,5 @@
 //
-//  EmailInputProfile.swift
+//  EmailFieldConfiguration.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -8,13 +8,13 @@
 import Foundation
 import UIKit
 
-public struct EmailInputProfile: InputProfile {
+public struct EmailFieldConfiguration: FieldConfiguration {
     public let id: String
     public let title: String
-    public let rules: [any InputRule]
+    public let rules: [any ValidationRule]
     public let keyboardType: UIKeyboardType
-    public let validationMode: ValidationMode
-    public let validationPolicy: FieldValidationPolicy
+    public let errorPresentationMode: ErrorPresentationMode
+    public let validationPolicy: ValidationPolicy
 
     public init(
         id: String = "email",
@@ -27,7 +27,7 @@ public struct EmailInputProfile: InputProfile {
             EmailRule(message: "Please enter a valid email")
         ]
         self.keyboardType = .emailAddress
-        self.validationMode = .highestPriority
+        self.errorPresentationMode = .highestPriority
         self.validationPolicy = .onChangeDebounced(300_000_000)
     }
 

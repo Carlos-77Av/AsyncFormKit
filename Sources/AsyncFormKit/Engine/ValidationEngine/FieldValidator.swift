@@ -1,5 +1,5 @@
 //
-//  FieldChecker.swift
+//  FieldValidator.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -7,46 +7,46 @@
 
 import Foundation
 
-public struct FieldChecker: FieldChecking {
+public struct FieldValidator: FieldValidating {
     public init() {}
 
     public func validate(
-        text: String,
-        rules: [any InputRule],
+        value: String,
+        rules: [any ValidationRule],
         context: ValidationContext
-    ) async -> ValidationSummary {
-        var brokenRules: [any InputRule] = []
+    ) async -> ValidationResult {
+        var failedRules: [any ValidationRule] = []
 
         for rule in rules {
             let shouldRun = shouldEvaluate(rule: rule, trigger: context.trigger)
             guard shouldRun else { continue }
 
-            let isValid = await rule.validate(text, context: context)
+            let isValid = await rule.validate(value, context: context)
             if !isValid {
-                brokenRules.append(rule)
+                failedRules.append(rule)
             }
         }
 
-        return ValidationSummary(
-            isValid: brokenRules.isEmpty,
-            brokenRules: brokenRules
+        return ValidationResult(
+            isValid: failedRules.isEmpty,
+            failedRules: failedRules
         )
     }
 
-    public func buildError(
-        from brokenRules: [any InputRule],
-        mode: ValidationMode
+    public func buildErrorMessage(
+        from failedRules: [any ValidationRule],
+        mode: ErrorPresentationMode
     ) -> String {
-        guard !brokenRules.isEmpty else { return "" }
+        guard !failedRules.isEmpty else { return "" }
 
         switch mode {
         case .joinAll(let separator):
-            return brokenRules
+            return failedRules
                 .map(\.message)
                 .joined(separator: separator)
 
         case .highestPriority:
-            return brokenRules
+            return failedRules
                 .sorted { $0.priority > $1.priority }
                 .first?.message ?? ""
 
@@ -56,7 +56,7 @@ public struct FieldChecker: FieldChecking {
     }
 
     private func shouldEvaluate(
-        rule: any InputRule,
+        rule: any ValidationRule,
         trigger: ValidationTrigger
     ) -> Bool {
         switch trigger {

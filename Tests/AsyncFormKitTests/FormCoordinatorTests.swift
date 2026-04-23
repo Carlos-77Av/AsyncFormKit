@@ -4,24 +4,24 @@ import Testing
 @Test
 @MainActor
 func testFormSetup() async {
-    let emailNode = FormNode(profile: EmailInputProfile())
-    let passwordNode = FormNode(profile: PasswordInputProfile())
-    let confirmNode = FormNode(
-        profile: ConfirmPasswordInputProfile(passwordFieldID: "password")
+    let emailField = FormField(configuration: EmailFieldConfiguration())
+    let passwordField = FormField(configuration: PasswordFieldConfiguration())
+    let confirmField = FormField(
+        configuration: ConfirmPasswordFieldConfiguration(passwordFieldID: "password")
     )
 
     let form = FormCoordinator(
-        nodes: [emailNode, passwordNode, confirmNode]
+        fields: [emailField, passwordField, confirmField]
     )
 
     form.activate()
 
-    emailNode.updateText("test@example.com")
-    passwordNode.updateText("12345678")
-    confirmNode.updateText("12345678")
+    emailField.updateValue("test@example.com")
+    passwordField.updateValue("12345678")
+    confirmField.updateValue("12345678")
 
-    await form.validateAll()
+    await form.validateAllFields()
 
     #expect(form.isFormValid)
-    #expect(form.formErrorText.isEmpty)
+    #expect(form.formErrorMessage.isEmpty)
 }

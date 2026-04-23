@@ -1,5 +1,5 @@
 //
-//  MatchOtherFieldRule.swift
+//  EmailRule.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -7,21 +7,18 @@
 
 import Foundation
 
-public struct MatchOtherFieldRule: SyncInputRule {
-    public let otherFieldID: String
+public struct EmailRule: SyncValidationRule {
     public let code: String
     public let message: String
     public let priority: Int
     public let executionKind: RuleExecutionKind
 
     public init(
-        otherFieldID: String,
-        code: String = "field.mismatch",
-        message: String = "Values do not match",
-        priority: Int = 95,
+        code: String = "email.invalid",
+        message: String = "Please enter a valid email",
+        priority: Int = 90,
         executionKind: RuleExecutionKind = .local
     ) {
-        self.otherFieldID = otherFieldID
         self.code = code
         self.message = message
         self.priority = priority
@@ -32,6 +29,10 @@ public struct MatchOtherFieldRule: SyncInputRule {
         _ text: String,
         context: ValidationContext
     ) -> Bool {
-        text == context.value(for: otherFieldID)
+        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return false }
+
+        let pattern = #"^\S+@\S+\.\S+$"#
+        return value.range(of: pattern, options: .regularExpression) != nil
     }
 }

@@ -1,5 +1,5 @@
 //
-//  FormNode.swift
+//  FormField.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -10,65 +10,65 @@ import Observation
 
 @MainActor
 @Observable
-public final class FormNode: AnyFormNode {
+public final class FormField: FormFieldType {
     public let id: String
     public let label: String
-    public let profile: any InputProfile
+    public let configuration: any FieldConfiguration
 
-    public private(set) var textValue: String
+    public private(set) var value: String
     public private(set) var status: FieldStatus
-    public private(set) var errorText: String
-    public private(set) var brokenRules: [any InputRule]
-    public private(set) var hasBeenTouched: Bool
+    public private(set) var errorMessage: String
+    public private(set) var failedRules: [any ValidationRule]
+    public private(set) var isTouched: Bool
     public private(set) var isDirty: Bool
 
     public var isValid: Bool {
         status == .valid
     }
 
-    private let checker: any FieldChecking
-    private weak var coordinator: FormCoordinatorProtocol?
+    private let validator: any FieldValidating
+    private weak var coordinator: FormCoordinating?
     private var validationTask: Task<Void, Never>?
 
     public init(
         id: String? = nil,
         initialValue: String = "",
-        profile: any InputProfile,
-        checker: any FieldChecking = FieldChecker()
+        configuration: any FieldConfiguration,
+        validator: any FieldValidating = FieldValidator()
     ) {
-        self.id = id ?? profile.id
-        self.label = profile.title
-        self.profile = profile
-        self.textValue = profile.normalize(initialValue)
+        self.id = id ?? configuration.id
+        self.label = configuration.title
+        self.configuration = configuration
+        self.value = configuration.normalize(initialValue)
         self.status = .idle
-        self.errorText = ""
-        self.brokenRules = []
-        self.hasBeenTouched = !initialValue.isEmpty
+        self.errorMessage = ""
+        self.failedRules = []
+        self.isTouched = !initialValue.isEmpty
         self.isDirty = false
-        self.checker = checker
+        self.validator = validator
     }
 
-    public func attach(to coordinator: FormCoordinatorProtocol) {
+    public func attach(to coordinator: FormCoordinating) {
         self.coordinator = coordinator
     }
 
     public func markAsTouched() {
-        hasBeenTouched = true
+        isTouched = true
     }
 
-    public func updateText(_ newValue: String) {
-        let normalized = profile.normalize(newValue)
-        guard normalized != textValue else { return }
+    public func updateValue(_ newValue: String) {
+        let normalized = configuration.normalize(newValue)
+        guard normalized != value else { return }
 
-        textValue = normalized
-        hasBeenTouched = true
+        value = normalized
+        isTouched = true
         isDirty = true
 
         scheduleValidationIfNeeded(for: .onChange)
     }
 
     public func blur() {
-        hasBeenTouched = true
+        isTouched = true
         scheduleValidationIfNeeded(for: .onBlur)
     }
 
@@ -80,37 +80,37 @@ public final class FormNode: AnyFormNode {
     private func performValidation(trigger: ValidationTrigger) async {
         status = .validating
 
-        let values = coordinator?.currentValues() ?? [id: textValue]
+        let values = coordinator?.currentFieldValues() ?? [id: value]
         let context = ValidationContext(
             valuesByID: values,
             trigger: trigger
         )
 
-        let summary = await checker.validate(
-            text: textValue,
-            rules: profile.rules,
+        let result = await validator.validate(
+            value: value,
+            rules: configuration.rules,
             context: context
         )
 
         guard !Task.isCancelled else { return }
 
-        brokenRules = summary.brokenRules
-        status = summary.isValid ? .valid : .invalid
+        failedRules = result.failedRules
+        status = result.isValid ? .valid : .invalid
 
-        if hasBeenTouched {
-            errorText = checker.buildError(
-                from: summary.brokenRules,
-                mode: profile.validationMode
+        if isTouched {
+            errorMessage = validator.buildErrorMessage(
+                from: result.failedRules,
+                mode: configuration.errorPresentationMode
             )
         } else {
-            errorText = ""
+            errorMessage = ""
         }
 
         await coordinator?.refreshState()
     }
 
     private func scheduleValidationIfNeeded(for trigger: ValidationTrigger) {
-        switch (profile.validationPolicy, trigger) {
+        switch (configuration.validationPolicy, trigger) {
         case (.manual, _):
             return
 

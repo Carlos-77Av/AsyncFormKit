@@ -17,10 +17,10 @@ It is designed to support modern form flows with reusable validation rules, fiel
 
 ## Core Concepts
 
-### InputRule
+### ValidationRule
 Defines reusable validation logic.
 
-### InputProfile
+### FieldConfiguration
 Describes how a field behaves, including:
 - rules
 - normalization
@@ -28,13 +28,13 @@ Describes how a field behaves, including:
 - keyboard type
 - error presentation mode
 
-### FormNode
+### FormField
 Represents a single field and handles:
 - current value
 - touched state
 - dirty state
 - validation state
-- error text
+- error message
 
 ### FormCoordinator
 Coordinates all fields in a form and exposes:
@@ -42,32 +42,32 @@ Coordinates all fields in a form and exposes:
 - form validation state
 - aggregated error text
 
-### FieldChecker
+### FieldValidator
 Runs validation rules and builds the final error output.
 
 ## Example
 
 ```swift
-let emailNode = FormNode(profile: EmailInputProfile())
-let passwordNode = FormNode(profile: PasswordInputProfile())
-let confirmNode = FormNode(
-    profile: ConfirmPasswordInputProfile(passwordFieldID: "password")
+let emailField = FormField(configuration: EmailFieldConfiguration())
+let passwordField = FormField(configuration: PasswordFieldConfiguration())
+let confirmField = FormField(
+    configuration: ConfirmPasswordFieldConfiguration(passwordFieldID: "password")
 )
 
 let form = FormCoordinator(
-    nodes: [emailNode, passwordNode, confirmNode]
+    fields: [emailField, passwordField, confirmField]
 )
 
 form.activate()
 
-emailNode.updateText("test@example.com")
-passwordNode.updateText("12345678")
-confirmNode.updateText("12345678")
+emailField.updateValue("test@example.com")
+passwordField.updateValue("12345678")
+confirmField.updateValue("12345678")
 
-await form.validateAll()
+await form.validateAllFields()
 
 print(form.isFormValid)
-print(form.formErrorText)
+print(form.formErrorMessage)
 ```
 
 ## Project Structure

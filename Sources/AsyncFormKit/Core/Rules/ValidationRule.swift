@@ -1,5 +1,5 @@
 //
-//  InputRule.swift
+//  ValidationRule.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol InputRule: Sendable {
+public protocol ValidationRule: Sendable {
     var code: String { get }
     var message: String { get }
     var priority: Int { get }

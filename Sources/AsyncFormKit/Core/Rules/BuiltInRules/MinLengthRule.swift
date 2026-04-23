@@ -1,5 +1,5 @@
 //
-//  RequiredRule.swift
+//  MinLengthRule.swift
 //  AsyncFormKit
 //
 //  Created by Carlos Alvarez on 19/4/26.
@@ -7,20 +7,23 @@
 
 import Foundation
 
-public struct RequiredRule: SyncInputRule {
+public struct MinLengthRule: SyncValidationRule {
+    public let minimum: Int
     public let code: String
     public let message: String
     public let priority: Int
     public let executionKind: RuleExecutionKind
 
     public init(
-        code: String = "required",
-        message: String = "This field is required",
-        priority: Int = 100,
+        minimum: Int,
+        code: String = "min.length",
+        message: String? = nil,
+        priority: Int = 80,
         executionKind: RuleExecutionKind = .local
     ) {
+        self.minimum = minimum
         self.code = code
-        self.message = message
+        self.message = message ?? "Minimum \(minimum) characters required"
         self.priority = priority
         self.executionKind = executionKind
     }
@@ -29,6 +32,6 @@ public struct RequiredRule: SyncInputRule {
         _ text: String,
         context: ValidationContext
     ) -> Bool {
-        !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        text.count >= minimum
     }
 }

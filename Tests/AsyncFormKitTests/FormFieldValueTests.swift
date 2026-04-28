@@ -46,6 +46,7 @@ func providesTextBinding() {
 
     binding.wrappedValue = "second@example.com"
 
+    #expect(binding.wrappedValue == "second@example.com")
     #expect(harness.email == "second@example.com")
     #expect(harness.emailField.value == "second@example.com")
 }

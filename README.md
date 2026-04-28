@@ -14,6 +14,7 @@ It is designed to support modern form flows with reusable validation rules, fiel
 - Debounced validation policies
 - SwiftUI-friendly bindings
 - Property wrapper support for SwiftUI text fields
+- Configurable currency formatting without depending on the current locale
 - Clean and extensible design
 
 ## Core Concepts
@@ -58,6 +59,52 @@ Use the field binding with SwiftUI inputs:
 
 ```swift
 TextField("Email", text: $email.binding)
+```
+
+Currency fields keep a clean canonical value while showing a formatted value in the text field:
+
+```swift
+@FormFieldValue(configuration: CurrencyFieldConfiguration(format: .usd))
+var amount = ""
+```
+
+For live cent-based currency masking while the field is focused, use `FormFieldTextField`:
+
+```swift
+FormFieldTextField("Amount", field: $amount)
+
+// Typing 3 displays "$ 0.03"
+// Then typing 9 displays "$ 0.39"
+// Then typing 7 displays "$ 3.97"
+```
+
+For delayed cent-based formatting, use `DebouncedFormFieldTextField`:
+
+```swift
+DebouncedFormFieldTextField(
+    "Amount",
+    field: $amount,
+    debounceDelay: 0.8
+)
+
+// Typing 452342 stays editable while typing.
+// After 0.8 seconds it displays "$ 4,523.42"
+// amount remains "4523.42"
+```
+
+If you need a custom `TextField` design, keep your own `TextField` and add the formatting modifier:
+
+```swift
+TextField("Amount", text: $amount.binding)
+    .font(.title2)
+    .padding()
+    .formFieldFormatting(
+        $amount,
+        mode: .debounced(delay: 0.8)
+    )
+
+// Typing 452342 stays editable while typing.
+// After 0.8 seconds it displays "$ 4,523.42"
 ```
 
 Register fields in a form with the projected value:
@@ -178,6 +225,7 @@ The current version already includes:
 - form coordination
 - SwiftUI binding support
 - `@FormFieldValue` property wrapper
+- currency field formatting
 - initial Swift Testing coverage
 
 ## Roadmap

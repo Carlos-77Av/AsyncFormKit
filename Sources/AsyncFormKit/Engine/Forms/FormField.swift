@@ -16,6 +16,7 @@ public final class FormField: FormFieldType {
     public let configuration: any FieldConfiguration
 
     public private(set) var value: String
+    public private(set) var displayValue: String
     public private(set) var status: FieldStatus
     public private(set) var errorMessage: String
     public private(set) var failedRules: [any ValidationRule]
@@ -36,10 +37,13 @@ public final class FormField: FormFieldType {
         configuration: any FieldConfiguration,
         validator: any FieldValidating = FieldValidator()
     ) {
+        let normalizedValue = configuration.normalize(initialValue)
+
         self.id = id ?? configuration.id
         self.label = configuration.title
         self.configuration = configuration
-        self.value = configuration.normalize(initialValue)
+        self.value = normalizedValue
+        self.displayValue = configuration.displayText(for: normalizedValue)
         self.status = .idle
         self.errorMessage = ""
         self.failedRules = []
@@ -58,13 +62,12 @@ public final class FormField: FormFieldType {
 
     public func updateValue(_ newValue: String) {
         let normalized = configuration.normalize(newValue)
-        guard normalized != value else { return }
+        updateStoredValue(normalized)
+    }
 
-        value = normalized
-        isTouched = true
-        isDirty = true
-
-        scheduleValidationIfNeeded(for: .onChange)
+    public func updateDisplayValue(_ newValue: String) {
+        let normalized = configuration.normalizeDisplayText(newValue)
+        updateStoredValue(normalized)
     }
 
     public func blur() {
@@ -107,6 +110,18 @@ public final class FormField: FormFieldType {
         }
 
         await coordinator?.refreshState()
+    }
+
+    private func updateStoredValue(_ normalized: String) {
+        let displayText = configuration.displayText(for: normalized)
+        guard normalized != value || displayText != displayValue else { return }
+
+        value = normalized
+        displayValue = displayText
+        isTouched = true
+        isDirty = true
+
+        scheduleValidationIfNeeded(for: .onChange)
     }
 
     private func scheduleValidationIfNeeded(for trigger: ValidationTrigger) {

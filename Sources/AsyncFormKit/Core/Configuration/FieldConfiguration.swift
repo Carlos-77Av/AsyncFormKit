@@ -17,6 +17,8 @@ public protocol FieldConfiguration: Sendable {
     var validationPolicy: ValidationPolicy { get }
 
     func normalize(_ text: String) -> String
+    func normalizeDisplayText(_ text: String) -> String
+    func displayText(for value: String) -> String
 }
 
 public extension FieldConfiguration {
@@ -26,5 +28,13 @@ public extension FieldConfiguration {
 
     func normalize(_ text: String) -> String {
         text
+    }
+
+    func normalizeDisplayText(_ text: String) -> String {
+        normalize(text)
+    }
+
+    func displayText(for value: String) -> String {
+        value
     }
 }

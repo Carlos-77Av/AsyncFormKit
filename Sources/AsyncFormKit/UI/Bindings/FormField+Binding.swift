@@ -10,8 +10,8 @@ import SwiftUI
 public extension FormField {
     var binding: Binding<String> {
         Binding(
-            get: { self.value },
-            set: { self.updateValue($0) }
+            get: { self.displayValue },
+            set: { self.updateDisplayValue($0) }
         )
     }
 }

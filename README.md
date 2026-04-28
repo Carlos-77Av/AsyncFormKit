@@ -13,6 +13,7 @@ It is designed to support modern form flows with reusable validation rules, fiel
 - Cross-field validation support
 - Debounced validation policies
 - SwiftUI-friendly bindings
+- Property wrapper support for SwiftUI text fields
 - Clean and extensible design
 
 ## Core Concepts
@@ -36,6 +37,35 @@ Represents a single field and handles:
 - validation state
 - error message
 
+### FormFieldValue
+Property wrapper that lets a form field read and write like a `String`, while still keeping the underlying `FormField` available for validation.
+
+Use the wrapped value as plain text:
+
+```swift
+email = "test@example.com"
+print(email)
+```
+
+Use the projected value as the underlying `FormField`:
+
+```swift
+$email.isValid
+$email.errorMessage
+```
+
+Use the field binding with SwiftUI inputs:
+
+```swift
+TextField("Email", text: $email.binding)
+```
+
+Register fields in a form with the projected value:
+
+```swift
+FormCoordinator(fields: [$email])
+```
+
 ### FormCoordinator
 Coordinates all fields in a form and exposes:
 - form validity
@@ -45,7 +75,64 @@ Coordinates all fields in a form and exposes:
 ### FieldValidator
 Runs validation rules and builds the final error output.
 
-## Example
+## SwiftUI Example
+
+```swift
+import AsyncFormKit
+import Observation
+import SwiftUI
+
+@MainActor
+final class SignInViewModel {
+    @FormFieldValue(configuration: EmailFieldConfiguration())
+    var email = ""
+
+    @FormFieldValue(configuration: PasswordFieldConfiguration())
+    var password = ""
+
+    lazy var form = FormCoordinator(
+        fields: [
+            $email,
+            $password
+        ]
+    )
+
+    init() {
+        form.activate()
+    }
+
+    func signIn() async {
+        await form.validateAllFields()
+
+        guard form.isFormValid else { return }
+
+        // Continue with your sign-in flow.
+    }
+}
+
+struct SignInView: View {
+    @State private var viewModel = SignInViewModel()
+
+    var body: some View {
+        Form {
+            TextField("Email", text: viewModel.$email.binding)
+                .keyboardType(.emailAddress)
+
+            SecureField("Password", text: viewModel.$password.binding)
+
+            Button("Sign In") {
+                Task {
+                    await viewModel.signIn()
+                }
+            }
+        }
+    }
+}
+```
+
+With `@FormFieldValue`, the field value is used like a normal `String`. You do not need to call `.value` to read it or `.updateValue(...)` to change it.
+
+## Manual Example
 
 ```swift
 let emailField = FormField(configuration: EmailFieldConfiguration())
@@ -90,6 +177,7 @@ The current version already includes:
 - field validation engine
 - form coordination
 - SwiftUI binding support
+- `@FormFieldValue` property wrapper
 - initial Swift Testing coverage
 
 ## Roadmap
